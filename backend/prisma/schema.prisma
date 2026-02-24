@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(PATIENT)
+  firstName     String
+  lastName      String
+  dateOfBirth   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  patientProfile PatientProfile?
+  measurements   Measurement[]
+  sessions       MeasurementSession[]
+  alerts         Alert[]
+}
+
+enum Role {
+  PATIENT
+  PHYSICIAN
+  PHYSIOTHERAPIST
+  ADMIN
+}
+
+model PatientProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  diagnosis       String?
+  operationDate   DateTime?
+  operationType   String?
+  targetJoint     String?
+  targetSide      String?
+  treatingPhysicianId String?
+  physiotherapistId   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Measurement {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  sessionId     String?
+  session       MeasurementSession? @relation(fields: [sessionId], references: [id])
+  jointType     String
+  movementType  String
+  bodySide      String
+  angle         Float
+  confidence    Float
+  painLevel     Int?
+  notes         String?
+  measuredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([userId, jointType, movementType, bodySide])
+  @@index([measuredAt])
+}
+
+model MeasurementSession {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  jointType   String
+  bodySide    String
+  startTime   DateTime
+  endTime     DateTime?
+  measurements Measurement[]
+  createdAt   DateTime @default(now())
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // stagnation, regression, milestone_reached, milestone_missed
+  severity    String   // info, warning, critical
+  message     String
+  acknowledged Boolean @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model PhysicianPatientLink {
+  id            String   @id @default(uuid())
+  physicianId   String
+  patientId     String
+  status        String   @default("active") // active, revoked
+  createdAt     DateTime @default(now())
+
+  @@unique([physicianId, patientId])
+}
