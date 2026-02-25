@@ -11,7 +11,7 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'flexion',
                 label: 'Flexion (Beugung)',
-                normalRange: [0, 130],
+                normalRange: [0, 150], // Updated: 0-150
                 cameraPosition: 'sagittal',
                 instructions: ['Stehen Sie seitlich zur Kamera', 'Ein Bein leicht nach hinten', 'Beugen Sie das Knie so weit wie möglich'],
             },
@@ -33,7 +33,7 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'flexion',
                 label: 'Flexion (Beugung)',
-                normalRange: [0, 130],
+                normalRange: [0, 150], // Updated: 0-150
                 cameraPosition: 'sagittal',
                 instructions: ['Stehen Sie seitlich zur Kamera', 'Ein Bein leicht nach hinten', 'Beugen Sie das Knie so weit wie möglich'],
             },
@@ -58,7 +58,7 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'flexion',
                 label: 'Flexion (Beugung)',
-                normalRange: [0, 130],
+                normalRange: [0, 120], // Updated: 0-120
                 cameraPosition: 'sagittal',
                 instructions: ['Liegen Sie auf dem Rücken', 'Ziehen Sie das Knie in Richtung Brust'],
             },
@@ -80,7 +80,7 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'flexion',
                 label: 'Flexion (Beugung)',
-                normalRange: [0, 130],
+                normalRange: [0, 120], // Updated: 0-120
                 cameraPosition: 'sagittal',
                 instructions: ['Liegen Sie auf dem Rücken', 'Ziehen Sie das Knie in Richtung Brust'],
             },
@@ -104,7 +104,7 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'flexion',
                 label: 'Anteversion',
-                normalRange: [0, 170],
+                normalRange: [0, 180], // Updated: 0-180
                 cameraPosition: 'sagittal',
                 instructions: ['Arm gestreckt nach vorne oben heben'],
             },
@@ -126,7 +126,7 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'flexion',
                 label: 'Anteversion',
-                normalRange: [0, 170],
+                normalRange: [0, 180], // Updated: 0-180
                 cameraPosition: 'sagittal',
                 instructions: ['Arm gestreckt nach vorne oben heben'],
             },
@@ -242,14 +242,14 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'dorsiflexion',
                 label: 'Heben (Dorsalextension)',
-                normalRange: [0, 20],
+                normalRange: [0, 20], // 0-20
                 cameraPosition: 'sagittal',
                 instructions: ['Bein ausstrecken', 'Fußspitze hochziehen'],
             },
             {
                 type: 'plantarflexion',
                 label: 'Senken (Plantarflexion)',
-                normalRange: [0, 50],
+                normalRange: [0, 45], // Updated: 0-45
                 cameraPosition: 'sagittal',
                 instructions: ['Bein ausstrecken', 'Fußspitze nach unten strecken'],
             },
@@ -264,14 +264,14 @@ export const JOINT_CONFIGS: Record<string, JointConfig> = {
             {
                 type: 'dorsiflexion',
                 label: 'Heben (Dorsalextension)',
-                normalRange: [0, 20],
+                normalRange: [0, 20], // 0-20
                 cameraPosition: 'sagittal',
                 instructions: ['Bein ausstrecken', 'Fußspitze hochziehen'],
             },
             {
                 type: 'plantarflexion',
                 label: 'Senken (Plantarflexion)',
-                normalRange: [0, 50],
+                normalRange: [0, 45], // Updated: 0-45
                 cameraPosition: 'sagittal',
                 instructions: ['Bein ausstrecken', 'Fußspitze nach unten strecken'],
             },

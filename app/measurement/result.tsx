@@ -1,17 +1,75 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Colors } from '../../src/constants/colors';
+import * as SQLite from 'expo-sqlite';
+import { insertMeasurement } from '../../src/services/database';
+import { formatNeutralZero } from '../../src/utils/angleCalculation';
 
-export default function ResultScreen({ navigation }: any) {
+export default function ResultScreen({ route, navigation }: any) {
+    const { angle, jointType, movementType, bodySide, jointLabel } = route?.params || {};
+    const [saving, setSaving] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+        const saveData = async () => {
+            try {
+                if (angle === undefined) {
+                    // Falls aus irgendeinem Grund keine Daten kamen (zB Reload)
+                    setSaving(false);
+                    return;
+                }
+
+                const neutralZeroFormat = formatNeutralZero(angle, jointType || 'knee', movementType || 'flexion');
+
+                const db = await SQLite.openDatabaseAsync('romai.db');
+                const newMeasurement = {
+                    id: Math.random().toString(36).substring(2, 15),
+                    jointType: jointType || 'knee',
+                    movementType: movementType || 'flexion',
+                    bodySide: bodySide || 'left',
+                    angle: angle,
+                    neutralZeroFormat: neutralZeroFormat,
+                    confidence: 0.9,
+                    timestamp: new Date().toISOString(),
+                    syncStatus: 'pending' as const,
+                    userId: 'default_patient' // In future: read from useUserStore
+                };
+
+                await insertMeasurement(db, newMeasurement);
+                console.log("Measurement saved to DB!", newMeasurement);
+            } catch (e) {
+                console.error("Failed to save measurement", e);
+                Alert.alert("Speicherfehler", "Es gab ein Problem beim Speichern: " + String(e));
+            } finally {
+                if (isMounted) setSaving(false);
+            }
+        };
+
+        saveData();
+
+        return () => { isMounted = false; };
+    }, [angle, jointType, movementType, bodySide]);
+
+    if (saving) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size="large" color={Colors.primary[500]} />
+                <Text style={{ marginTop: 16, color: Colors.neutral[600] }}>Speichere Messung...</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Messung abgeschlossen!</Text>
 
             <View style={styles.circle}>
-                <Text style={styles.angleText}>95°</Text>
+                <Text style={styles.angleText}>
+                    {angle !== undefined ? formatNeutralZero(angle, jointType || 'knee', movementType || 'flexion') : '--'}
+                </Text>
             </View>
 
-            <Text style={styles.subtitle}>Knie Flexion (links)</Text>
+            <Text style={styles.subtitle}>{jointLabel || 'Unbekanntes Gelenk'}</Text>
             <Text style={styles.note}>Die Daten wurden sicher gespeichert.</Text>
 
             <TouchableOpacity style={styles.buttonMain} onPress={() => navigation.navigate('Tabs')}>
@@ -24,8 +82,8 @@ export default function ResultScreen({ navigation }: any) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.surface, alignItems: 'center', justifyContent: 'center', padding: 24 },
     title: { fontSize: 28, fontWeight: 'bold', color: Colors.primary[800], marginBottom: 32 },
-    circle: { width: 200, height: 200, borderRadius: 100, backgroundColor: Colors.primary[50], alignItems: 'center', justifyContent: 'center', borderWidth: 8, borderColor: Colors.primary[500], marginBottom: 24 },
-    angleText: { fontSize: 64, fontWeight: 'bold', color: Colors.primary[600] },
+    circle: { width: 220, height: 220, borderRadius: 110, backgroundColor: Colors.primary[50], alignItems: 'center', justifyContent: 'center', borderWidth: 8, borderColor: Colors.primary[500], marginBottom: 24 },
+    angleText: { fontSize: 46, fontWeight: 'bold', color: Colors.primary[600], textAlign: 'center' },
     subtitle: { fontSize: 20, fontWeight: '600', color: Colors.neutral[800], marginBottom: 8 },
     note: { fontSize: 16, color: Colors.success[600], marginBottom: 48 },
     buttonMain: { backgroundColor: Colors.primary[500], paddingVertical: 16, paddingHorizontal: 48, borderRadius: 32, width: '100%', alignItems: 'center' },

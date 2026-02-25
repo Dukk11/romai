@@ -5,7 +5,7 @@ import { useUserStore, useSettingsStore } from '../src/stores/userStore';
 
 export default function SettingsScreen({ navigation }: any) {
     const { role, setRole } = useUserStore();
-    const { offlineMode, toggleOfflineMode } = useSettingsStore();
+    const { offlineMode, toggleOfflineMode, stabilityThreshold, stabilityFrames, setStabilityThreshold, setStabilityFrames } = useSettingsStore();
 
     const handleRoleSwitch = (newRole: 'patient' | 'professional') => {
         setRole(newRole);
@@ -64,6 +64,35 @@ export default function SettingsScreen({ navigation }: any) {
                     </View>
                 </View>
 
+                {/* Advanced Settings */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Mess-Parameter (Tremor)</Text>
+
+                    <View style={styles.settingRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.settingLabel}>Stabilitätstoleranz</Text>
+                            <Text style={styles.settingSub}>Erlaubte Wackler (in Grad)</Text>
+                        </View>
+                        <View style={styles.stepper}>
+                            <TouchableOpacity onPress={() => setStabilityThreshold(Math.max(1, stabilityThreshold - 1))} style={styles.stepBtn}><Text style={styles.stepText}>-</Text></TouchableOpacity>
+                            <Text style={styles.stepValue}>{stabilityThreshold}°</Text>
+                            <TouchableOpacity onPress={() => setStabilityThreshold(Math.min(15, stabilityThreshold + 1))} style={styles.stepBtn}><Text style={styles.stepText}>+</Text></TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View style={[styles.settingRow, { marginTop: 8 }]}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.settingLabel}>Erfassungsdauer</Text>
+                            <Text style={styles.settingSub}>Benötigte Frames für Freeze</Text>
+                        </View>
+                        <View style={styles.stepper}>
+                            <TouchableOpacity onPress={() => setStabilityFrames(Math.max(3, stabilityFrames - 1))} style={styles.stepBtn}><Text style={styles.stepText}>-</Text></TouchableOpacity>
+                            <Text style={styles.stepValue}>{stabilityFrames}</Text>
+                            <TouchableOpacity onPress={() => setStabilityFrames(Math.min(30, stabilityFrames + 1))} style={styles.stepBtn}><Text style={styles.stepText}>+</Text></TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+
                 {/* About Info */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Info</Text>
@@ -106,5 +135,11 @@ const styles = StyleSheet.create({
     // Info
     infoBox: { alignItems: 'center', padding: 24, backgroundColor: Colors.surface, borderRadius: 12 },
     infoText: { fontSize: 16, color: Colors.neutral[800], fontWeight: '500', marginBottom: 4 },
-    infoTextMini: { fontSize: 12, color: Colors.neutral[400], marginTop: 12 }
+    infoTextMini: { fontSize: 12, color: Colors.neutral[400], marginTop: 12 },
+
+    // Steppers
+    stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.neutral[100], borderRadius: 8, overflow: 'hidden' },
+    stepBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.neutral[200] },
+    stepText: { fontSize: 18, fontWeight: 'bold', color: Colors.primary[700] },
+    stepValue: { paddingHorizontal: 16, fontSize: 16, fontWeight: '600', color: Colors.neutral[800], minWidth: 50, textAlign: 'center' }
 });

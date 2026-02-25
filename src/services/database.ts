@@ -64,15 +64,21 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     );
   `);
 
+    try {
+        await db.execAsync(`ALTER TABLE measurements ADD COLUMN neutral_zero_format TEXT;`);
+    } catch (e) {
+        // Ignorieren, Spalte existiert bereits
+    }
+
     return db;
 }
 
 // CRUD Operations
 export async function insertMeasurement(db: SQLite.SQLiteDatabase, m: Measurement): Promise<void> {
     await db.runAsync(
-        `INSERT INTO measurements (id, joint_type, movement_type, body_side, angle, confidence, timestamp, video_frame_uri, notes, pain_level, sync_status, user_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [m.id, m.jointType, m.movementType, m.bodySide, m.angle, m.confidence, m.timestamp, m.videoFrameUri || null, m.notes || null, m.painLevel ?? null, m.syncStatus, m.userId]
+        `INSERT INTO measurements(id, joint_type, movement_type, body_side, angle, neutral_zero_format, confidence, timestamp, video_frame_uri, notes, pain_level, sync_status, user_id)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [m.id, m.jointType, m.movementType, m.bodySide, m.angle, m.neutralZeroFormat || null, m.confidence, m.timestamp, m.videoFrameUri || null, m.notes || null, m.painLevel ?? null, m.syncStatus, m.userId]
     );
 }
 
@@ -86,7 +92,7 @@ export async function getMeasurements(
     const rows = await db.getAllAsync(
         `SELECT * FROM measurements
      WHERE joint_type = ? AND movement_type = ? AND body_side = ?
-     ORDER BY timestamp DESC LIMIT ?`,
+        ORDER BY timestamp DESC LIMIT ? `,
         [jointType, movementType, bodySide, limit]
     );
     return rows as Measurement[];
@@ -101,7 +107,7 @@ export async function getLatestMeasurement(
     const row = await db.getFirstAsync(
         `SELECT * FROM measurements
      WHERE joint_type = ? AND movement_type = ? AND body_side = ?
-     ORDER BY timestamp DESC LIMIT 1`,
+        ORDER BY timestamp DESC LIMIT 1`,
         [jointType, movementType, bodySide]
     );
     return row as Measurement | null;
