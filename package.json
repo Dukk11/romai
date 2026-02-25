@@ -26,10 +26,7 @@
     "expo-camera": "~17.0.10",
     "expo-constants": "~18.0.13",
     "expo-device": "~8.0.10",
-<<<<<<< HEAD
     "expo-file-system": "~19.0.21",
-=======
->>>>>>> 2e97166a1805b34dad49b1a89250fc6ddcb52e8c
     "expo-gl": "^16.0.10",
     "expo-haptics": "~15.0.8",
     "expo-notifications": "~0.32.16",
