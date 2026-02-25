@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initDatabase } from './src/services/database';
@@ -11,22 +12,44 @@ import SelectJointScreen from './app/measurement/select-joint';
 import OnboardingScreen from './app/onboarding';
 import SettingsScreen from './app/settings';
 import { useUserStore } from './src/stores/userStore';
+import { Colors } from './src/constants/colors';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = React.useState(false);
+  const [dbError, setDbError] = React.useState<string | null>(null);
   const { role } = useUserStore();
+
+  // Warten bis Zustand-Store rehydriert ist (aus AsyncStorage)
+  const hasHydrated = useUserStore((s: any) => s._hasHydrated !== false);
 
   React.useEffect(() => {
     initDatabase().then(() => {
       setDbInitialized(true);
       console.log('Database initialized');
-    }).catch(e => console.error(e));
+    }).catch(e => {
+      console.error('DB init failed:', e);
+      setDbError(String(e));
+    });
   }, []);
 
+  if (dbError) {
+    return (
+      <View style={loadingStyles.container}>
+        <Text style={loadingStyles.errorTitle}>Datenbankfehler</Text>
+        <Text style={loadingStyles.errorText}>{dbError}</Text>
+      </View>
+    );
+  }
+
   if (!dbInitialized) {
-    return null; // oder Loading Spinner
+    return (
+      <View style={loadingStyles.container}>
+        <ActivityIndicator size="large" color={Colors.primary[500]} />
+        <Text style={loadingStyles.loadingText}>ROM.AI wird geladen...</Text>
+      </View>
+    );
   }
 
   return (
@@ -45,3 +68,10 @@ export default function App() {
     </NavigationContainer>
   );
 }
+
+const loadingStyles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
+  loadingText: { marginTop: 16, fontSize: 16, color: Colors.neutral[600] },
+  errorTitle: { fontSize: 20, fontWeight: 'bold', color: Colors.error[500], marginBottom: 12 },
+  errorText: { fontSize: 14, color: Colors.neutral[600], textAlign: 'center', paddingHorizontal: 32 },
+});

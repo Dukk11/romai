@@ -1,14 +1,49 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Switch, Alert } from 'react-native';
 import { Colors } from '../src/constants/colors';
 import { useUserStore, useSettingsStore } from '../src/stores/userStore';
+import { Paths, File } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as SQLite from 'expo-sqlite';
+import { getAllMeasurements } from '../src/services/database';
 
 export default function SettingsScreen({ navigation }: any) {
     const { role, setRole } = useUserStore();
-    const { offlineMode, toggleOfflineMode } = useSettingsStore();
+    const { offlineMode, toggleOfflineMode, stabilityThreshold, stabilityFrames, setStabilityThreshold, setStabilityFrames } = useSettingsStore();
 
     const handleRoleSwitch = (newRole: 'patient' | 'professional') => {
         setRole(newRole);
+    };
+
+    const handleExportCSV = async () => {
+        try {
+            const db = await SQLite.openDatabaseAsync('romai.db');
+            const data = await getAllMeasurements(db);
+
+            if (data.length === 0) {
+                Alert.alert("Export fehlgeschlagen", "Keine Messdaten vorhanden.");
+                return;
+            }
+
+            let csvContent = "Datum,Patient ID,Gelenk,Bewegung,Seite,Winkel (Raw),Neutral-0,Konfidenz,Schmerz\n";
+            data.forEach(m => {
+                const dateStr = new Date(m.timestamp).toLocaleString('de-DE');
+                csvContent += `"${dateStr}","${m.patientId || ''}","${m.jointType}","${m.movementType}","${m.bodySide}","${m.angle}","${m.neutralZeroFormat || ''}","${Math.round(m.confidence * 100)}%","${m.painLevel || ''}"\n`;
+            });
+
+            const file = new File(Paths.document, "romai_export.csv");
+            file.write(csvContent);
+            const fileUri = file.uri;
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(fileUri);
+            } else {
+                Alert.alert("Fehler", "Teilen wird auf diesem Gerät nicht unterstützt.");
+            }
+        } catch (e) {
+            console.error(e);
+            Alert.alert("Export-Fehler", "Es ist ein Fehler beim Export aufgetreten.");
+        }
     };
 
     return (
@@ -62,6 +97,45 @@ export default function SettingsScreen({ navigation }: any) {
                             thumbColor={Colors.surface}
                         />
                     </View>
+
+                    <View style={[styles.settingRow, { marginTop: 8 }]}>
+                        <View>
+                            <Text style={styles.settingLabel}>KIS / EPA Export</Text>
+                            <Text style={styles.settingSub}>Messdaten als CSV exportieren</Text>
+                        </View>
+                        <TouchableOpacity style={styles.exportBtn} onPress={handleExportCSV}>
+                            <Text style={styles.exportText}>Export</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Advanced Settings */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Mess-Parameter (Tremor)</Text>
+
+                    <View style={styles.settingRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.settingLabel}>Stabilitätstoleranz</Text>
+                            <Text style={styles.settingSub}>Erlaubte Wackler (in Grad)</Text>
+                        </View>
+                        <View style={styles.stepper}>
+                            <TouchableOpacity onPress={() => setStabilityThreshold(Math.max(1, stabilityThreshold - 1))} style={styles.stepBtn}><Text style={styles.stepText}>-</Text></TouchableOpacity>
+                            <Text style={styles.stepValue}>{stabilityThreshold}°</Text>
+                            <TouchableOpacity onPress={() => setStabilityThreshold(Math.min(15, stabilityThreshold + 1))} style={styles.stepBtn}><Text style={styles.stepText}>+</Text></TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View style={[styles.settingRow, { marginTop: 8 }]}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.settingLabel}>Erfassungsdauer</Text>
+                            <Text style={styles.settingSub}>Benötigte Frames für Freeze</Text>
+                        </View>
+                        <View style={styles.stepper}>
+                            <TouchableOpacity onPress={() => setStabilityFrames(Math.max(3, stabilityFrames - 1))} style={styles.stepBtn}><Text style={styles.stepText}>-</Text></TouchableOpacity>
+                            <Text style={styles.stepValue}>{stabilityFrames}</Text>
+                            <TouchableOpacity onPress={() => setStabilityFrames(Math.min(30, stabilityFrames + 1))} style={styles.stepBtn}><Text style={styles.stepText}>+</Text></TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
 
                 {/* About Info */}
@@ -106,5 +180,14 @@ const styles = StyleSheet.create({
     // Info
     infoBox: { alignItems: 'center', padding: 24, backgroundColor: Colors.surface, borderRadius: 12 },
     infoText: { fontSize: 16, color: Colors.neutral[800], fontWeight: '500', marginBottom: 4 },
-    infoTextMini: { fontSize: 12, color: Colors.neutral[400], marginTop: 12 }
+    infoTextMini: { fontSize: 12, color: Colors.neutral[400], marginTop: 12 },
+
+    // Steppers & Buttons
+    stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.neutral[100], borderRadius: 8, overflow: 'hidden' },
+    stepBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.neutral[200] },
+    stepText: { fontSize: 18, fontWeight: 'bold', color: Colors.primary[700] },
+    stepValue: { paddingHorizontal: 16, fontSize: 16, fontWeight: '600', color: Colors.neutral[800], minWidth: 50, textAlign: 'center' },
+
+    exportBtn: { backgroundColor: Colors.primary[100], paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8 },
+    exportText: { color: Colors.primary[700], fontWeight: 'bold' }
 });

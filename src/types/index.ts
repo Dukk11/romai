@@ -33,6 +33,7 @@ export interface Measurement {
   movementType: MovementType;
   bodySide: BodySide;
   angle: number;              // Gemessener Winkel in Grad
+  neutralZeroFormat?: string; // Neu: "130-0-5" (Neutral-0-Methode)
   confidence: number;         // Pose Estimation Confidence (0-1)
   timestamp: string;          // ISO 8601
   videoFrameUri?: string;     // Lokaler Pfad zum Standbild
@@ -40,6 +41,7 @@ export interface Measurement {
   painLevel?: number;         // VAS 0-10
   syncStatus: 'pending' | 'synced' | 'failed';
   userId: string;
+  patientId?: string; // Neu: Für Mediziner-Modus zur Zuordnung
 }
 
 export interface MeasurementSession {

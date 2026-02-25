@@ -3,6 +3,28 @@ import { Measurement, JointType, MovementType, BodySide } from '../types';
 
 const DB_NAME = 'romai.db';
 
+/**
+ * Mappt eine DB-Zeile (snake_case) auf das Measurement-Interface (camelCase).
+ */
+function mapRowToMeasurement(row: any): Measurement {
+    return {
+        id: row.id,
+        jointType: row.joint_type,
+        movementType: row.movement_type,
+        bodySide: row.body_side,
+        angle: row.angle,
+        neutralZeroFormat: row.neutral_zero_format ?? undefined,
+        confidence: row.confidence,
+        timestamp: row.timestamp,
+        videoFrameUri: row.video_frame_uri ?? undefined,
+        notes: row.notes ?? undefined,
+        painLevel: row.pain_level ?? undefined,
+        syncStatus: row.sync_status,
+        userId: row.user_id,
+        patientId: row.patient_id ?? undefined,
+    };
+}
+
 export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     const db = await SQLite.openDatabaseAsync(DB_NAME);
 
@@ -64,15 +86,27 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     );
   `);
 
+    try {
+        await db.execAsync(`ALTER TABLE measurements ADD COLUMN neutral_zero_format TEXT;`);
+    } catch (e) {
+        // Ignorieren, Spalte existiert bereits
+    }
+
+    try {
+        await db.execAsync(`ALTER TABLE measurements ADD COLUMN patient_id TEXT;`);
+    } catch (e) {
+        // Ignorieren, Spalte existiert bereits
+    }
+
     return db;
 }
 
 // CRUD Operations
 export async function insertMeasurement(db: SQLite.SQLiteDatabase, m: Measurement): Promise<void> {
     await db.runAsync(
-        `INSERT INTO measurements (id, joint_type, movement_type, body_side, angle, confidence, timestamp, video_frame_uri, notes, pain_level, sync_status, user_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [m.id, m.jointType, m.movementType, m.bodySide, m.angle, m.confidence, m.timestamp, m.videoFrameUri || null, m.notes || null, m.painLevel ?? null, m.syncStatus, m.userId]
+        `INSERT INTO measurements(id, joint_type, movement_type, body_side, angle, neutral_zero_format, confidence, timestamp, video_frame_uri, notes, pain_level, sync_status, user_id, patient_id)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [m.id, m.jointType, m.movementType, m.bodySide, m.angle, m.neutralZeroFormat || null, m.confidence, m.timestamp, m.videoFrameUri || null, m.notes || null, m.painLevel ?? null, m.syncStatus, m.userId, m.patientId || null]
     );
 }
 
@@ -86,10 +120,10 @@ export async function getMeasurements(
     const rows = await db.getAllAsync(
         `SELECT * FROM measurements
      WHERE joint_type = ? AND movement_type = ? AND body_side = ?
-     ORDER BY timestamp DESC LIMIT ?`,
+        ORDER BY timestamp DESC LIMIT ?`,
         [jointType, movementType, bodySide, limit]
     );
-    return rows as Measurement[];
+    return rows.map(mapRowToMeasurement);
 }
 
 export async function getLatestMeasurement(
@@ -97,14 +131,24 @@ export async function getLatestMeasurement(
     jointType: JointType,
     movementType: MovementType,
     bodySide: BodySide
-): Promise<Measurement | null> {
+): Promise<Measurement | undefined> {
     const row = await db.getFirstAsync(
         `SELECT * FROM measurements
      WHERE joint_type = ? AND movement_type = ? AND body_side = ?
-     ORDER BY timestamp DESC LIMIT 1`,
+        ORDER BY timestamp DESC LIMIT 1`,
         [jointType, movementType, bodySide]
     );
-    return row as Measurement | null;
+    return row ? mapRowToMeasurement(row) : undefined;
+}
+
+export async function getAllMeasurements(db: SQLite.SQLiteDatabase): Promise<Measurement[]> {
+    const rows = await db.getAllAsync(`SELECT * FROM measurements ORDER BY timestamp DESC`);
+    return rows.map(mapRowToMeasurement);
+}
+
+export async function getMeasurementCount(db: SQLite.SQLiteDatabase): Promise<number> {
+    const row = await db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) as count FROM measurements`);
+    return row?.count ?? 0;
 }
 
 export async function getPendingSyncItems(db: SQLite.SQLiteDatabase): Promise<any[]> {

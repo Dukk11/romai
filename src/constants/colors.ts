@@ -25,15 +25,29 @@ export const Colors = {
     },
     // Warnung
     warning: {
+        50: '#FEF9E7',
+        100: '#FCF3CF',
+        200: '#F9E79F',
+        300: '#F7DC6F',
+        400: '#F5B041',
         500: '#F39C12',
         600: '#E67E22',
         700: '#D68910',
+        800: '#B7950B',
+        900: '#7D6608',
     },
     // Fehler / Kritisch
     error: {
+        50: '#FDEDEC',
+        100: '#FADBD8',
+        200: '#F5B7B1',
+        300: '#F1948A',
+        400: '#EC7063',
         500: '#E74C3C',
         600: '#CB4335',
         700: '#B03A2E',
+        800: '#922B21',
+        900: '#641E16',
     },
     // Neutral / Grau
     neutral: {

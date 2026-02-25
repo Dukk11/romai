@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, JointType, BodySide } from '../types';
 
 interface UserState {
@@ -11,37 +13,61 @@ interface UserState {
     updateProfile: (data: Partial<User>) => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
-    user: null,
-    role: null,
-    isAuthenticated: false,
+export const useUserStore = create<UserState>()(
+    persist(
+        (set) => ({
+            user: null,
+            role: null,
+            isAuthenticated: false,
 
-    setRole: (role) => set({ role }),
+            setRole: (role) => set({ role }),
 
-    login: (user) => set({ user, isAuthenticated: true }),
+            login: (user) => set({ user, isAuthenticated: true }),
 
-    logout: () => set({ user: null, role: null, isAuthenticated: false }),
+            logout: () => set({ user: null, role: null, isAuthenticated: false }),
 
-    updateProfile: (data) => set((state) => ({
-        user: state.user ? { ...state.user, ...data } : null
-    }))
-}));
+            updateProfile: (data) => set((state) => ({
+                user: state.user ? { ...state.user, ...data } : null
+            }))
+        }),
+        {
+            name: 'romai-user-storage',
+            storage: createJSONStorage(() => AsyncStorage),
+        }
+    )
+);
 
 interface SettingsState {
     defaultJoint: JointType;
     defaultSide: BodySide;
     offlineMode: boolean;
+    stabilityThreshold: number;
+    stabilityFrames: number;
     setDefaultJoint: (joint: JointType) => void;
     setDefaultSide: (side: BodySide) => void;
     toggleOfflineMode: () => void;
+    setStabilityThreshold: (val: number) => void;
+    setStabilityFrames: (val: number) => void;
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
-    defaultJoint: 'knee',
-    defaultSide: 'right',
-    offlineMode: false,
+export const useSettingsStore = create<SettingsState>()(
+    persist(
+        (set) => ({
+            defaultJoint: 'knee',
+            defaultSide: 'right',
+            offlineMode: false,
+            stabilityThreshold: 4,
+            stabilityFrames: 10,
 
-    setDefaultJoint: (joint) => set({ defaultJoint: joint }),
-    setDefaultSide: (side) => set({ defaultSide: side }),
-    toggleOfflineMode: () => set((state) => ({ offlineMode: !state.offlineMode }))
-}));
+            setDefaultJoint: (joint) => set({ defaultJoint: joint }),
+            setDefaultSide: (side) => set({ defaultSide: side }),
+            toggleOfflineMode: () => set((state) => ({ offlineMode: !state.offlineMode })),
+            setStabilityThreshold: (val) => set({ stabilityThreshold: val }),
+            setStabilityFrames: (val) => set({ stabilityFrames: val })
+        }),
+        {
+            name: 'romai-settings-storage',
+            storage: createJSONStorage(() => AsyncStorage),
+        }
+    )
+);
