@@ -89,13 +89,13 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     try {
         await db.execAsync(`ALTER TABLE measurements ADD COLUMN neutral_zero_format TEXT;`);
     } catch (e) {
-        // Ignorieren, Spalte existiert bereits
+        // Spalte existiert bereits
     }
 
     try {
         await db.execAsync(`ALTER TABLE measurements ADD COLUMN patient_id TEXT;`);
     } catch (e) {
-        // Ignorieren, Spalte existiert bereits
+        // Spalte existiert bereits
     }
 
     return db;

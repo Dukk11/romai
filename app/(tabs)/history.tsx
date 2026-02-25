@@ -168,7 +168,7 @@ export default function HistoryScreen() {
             {/* Tabellarische Übersicht */}
             <View style={styles.table}>
                 <Text style={styles.tableTitle}>Einzelne Messungen</Text>
-                {tableData.length === 0 && <Text style={styles.emptyText}>Noch keine Messungen f\u00fcr dieses Gelenk.</Text>}
+                {tableData.length === 0 && <Text style={styles.emptyText}>Noch keine Messungen für dieses Gelenk.</Text>}
                 {tableData.map((item, idx) => (
                     <View key={item.id || idx} style={styles.tableRow}>
                         <Text style={styles.rowDate}>

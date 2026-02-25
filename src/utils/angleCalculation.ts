@@ -19,15 +19,15 @@ export function calculateAngle(
     b: PoseLandmark,
     c: PoseLandmark
 ): number {
-    // Vektoren BA und BC (2D, Z wurde wegen Rauschen im tflite Model entfernt)
+    // Vektoren BA und BC
     const baX = a.x - b.x;
     const baY = a.y - b.y;
-
     const bcX = c.x - b.x;
     const bcY = c.y - b.y;
+    const bcZ = (c.z || 0) - (b.z || 0);
 
-    // Skalarprodukt und Beträge (2D)
-    const dotProduct = (baX * bcX) + (baY * bcY);
+    // Skalarprodukt und Beträge
+    const dotProduct = baX * bcX + baY * bcY;
     const magnitudeBA = Math.sqrt(baX * baX + baY * baY);
     const magnitudeBC = Math.sqrt(bcX * bcX + bcY * bcY);
 
@@ -138,72 +138,55 @@ export function isStablePosition(
 }
 
 /**
- * Formatiert einen Winkel nach der ärztlichen Neutral-Null-Methode (z.B. Ext-0-Flex).
- * Wandelt die isolierte Messung in das dreistellige String-Format um.
+ * Berechnet die Beckenneigung aus den Hüft-Keypoints.
+ * Wird zur Erkennung von Ausweichbewegungen bei Hüft-/Kniemessungen verwendet.
+ *
+ * @param leftHip Linker Hüftpunkt (mit x, y Koordinaten)
+ * @param rightHip Rechter Hüftpunkt (mit x, y Koordinaten)
+ * @returns Neigungswinkel in Grad (0 = gerade, positiv = links höher)
+ */
+export function calculatePelvicTilt(
+    leftHip: { x: number; y: number },
+    rightHip: { x: number; y: number }
+): number {
+    const dx = rightHip.x - leftHip.x;
+    const dy = rightHip.y - leftHip.y;
+    if (dx === 0) return dy > 0 ? 90 : -90;
+    const angleRad = Math.atan2(dy, dx);
+    return Math.round((angleRad * 180) / Math.PI);
+}
+
+/**
+ * Formatiert einen Winkelwert in die Neutral-0-Methode.
+ * Klinischer Standard: Extension / 0 / Flexion (z.B. "0-0-130" für 130° Knieflexion)
  */
 export function formatNeutralZero(
     angle: number,
     jointType: string,
     movementType: string
 ): string {
-    const rounded = Math.round(angle);
-
     switch (`${jointType}_${movementType}`) {
         case 'knee_flexion':
-        case 'hip_flexion':
-        case 'elbow_flexion':
-        case 'shoulder_flexion':
-        case 'wrist_flexion':
-        case 'ankle_plantarflexion':
-            return `0-0-${rounded}`;
-
+            return `0-0-${angle}`;
         case 'knee_extension':
-        case 'elbow_extension':
-        case 'wrist_extension':
-        case 'ankle_dorsiflexion':
-            return `${rounded}-0-0`;
-
+            return angle >= 0 ? `${angle}-0-0` : `0-${Math.abs(angle)}-0`;
+        case 'hip_flexion':
+            return `0-0-${angle}`;
         case 'hip_abduction':
+            return `0-0-${angle}`;
+        case 'shoulder_flexion':
+            return `0-0-${angle}`;
         case 'shoulder_abduction':
-            return `${rounded}-0-0`;
-
-        case 'hip_adduction':
-        case 'shoulder_adduction':
-            return `0-0-${rounded}`;
-
+            return `0-0-${angle}`;
+        case 'elbow_flexion':
+            return `0-0-${angle}`;
+        case 'elbow_extension':
+            return angle >= 0 ? `${angle}-0-0` : `0-${Math.abs(angle)}-0`;
+        case 'ankle_dorsiflexion':
+            return `${angle}-0-0`;
+        case 'ankle_plantarflexion':
+            return `0-0-${angle}`;
         default:
-            return `?-0-${rounded}`;
+            return `${angle}°`;
     }
-}
-
-/**
- * Berechnet den Beckenschiefstand (Pelvic Tilt) in Grad relativ zur Horizontalen.
- * 0° = waagerechtes Becken. Hilft beim Erkennen von Ausweichbewegungen.
- */
-export function calculatePelvicTilt(
-    leftHip: { x: number, y: number, z?: number },
-    rightHip: { x: number, y: number, z?: number }
-): number {
-    const dx = rightHip.x - leftHip.x;
-    const dy = rightHip.y - leftHip.y;
-    // Winkel zur Horizontalen
-    const angleRad = Math.atan2(dy, dx);
-    const angleDeg = (angleRad * 180) / Math.PI;
-    return Math.round(angleDeg * 10) / 10;
-}
-
-/**
- * Berechnet den Schulterhochstand (Shoulder Tilt) in Grad relativ zur Horizontalen.
- * 0° = waagerechte Schultern. Hilft beim Erkennen von vertikalen Ausweichbewegungen (z.B. bei Abduktion).
- */
-export function calculateShoulderTilt(
-    leftShoulder: { x: number, y: number, z?: number },
-    rightShoulder: { x: number, y: number, z?: number }
-): number {
-    const dx = rightShoulder.x - leftShoulder.x;
-    const dy = rightShoulder.y - leftShoulder.y;
-    // Winkel zur Horizontalen
-    const angleRad = Math.atan2(dy, dx);
-    const angleDeg = (angleRad * 180) / Math.PI;
-    return Math.round(angleDeg * 10) / 10;
 }

@@ -15,7 +15,6 @@ export default function ResultScreen({ route, navigation }: any) {
         const saveData = async () => {
             try {
                 if (angle === undefined) {
-                    // Falls aus irgendeinem Grund keine Daten kamen (zB Reload)
                     setSaving(false);
                     return;
                 }
@@ -33,7 +32,7 @@ export default function ResultScreen({ route, navigation }: any) {
                     confidence: 0.9,
                     timestamp: new Date().toISOString(),
                     syncStatus: 'pending' as const,
-                    userId: 'default_patient', // In future: read from useUserStore
+                    userId: 'default_patient',
                     patientId: patientId || null
                 };
 

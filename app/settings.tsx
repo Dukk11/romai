@@ -53,7 +53,7 @@ export default function SettingsScreen({ navigation }: any) {
                     <Text style={styles.closeText}>Zurück</Text>
                 </TouchableOpacity>
                 <Text style={styles.title}>Einstellungen</Text>
-                <View style={{ width: 60 }} /> {/* Spacer */}
+                <View style={{ width: 60 }} />
             </View>
 
             <ScrollView style={styles.content}>
@@ -109,7 +109,7 @@ export default function SettingsScreen({ navigation }: any) {
                     </View>
                 </View>
 
-                {/* Advanced Settings */}
+                {/* Mess-Parameter */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Mess-Parameter (Tremor)</Text>
 
