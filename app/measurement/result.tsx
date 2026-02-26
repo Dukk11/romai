@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Colors } from '../../src/constants/colors';
-import * as SQLite from 'expo-sqlite';
-import { insertMeasurement } from '../../src/services/database';
+import { getDatabase, insertMeasurement } from '../../src/services/database';
 import { formatNeutralZero } from '../../src/utils/angleCalculation';
 import { generateId } from '../../src/utils/generateId';
 
@@ -21,7 +20,7 @@ export default function ResultScreen({ route, navigation }: any) {
 
                 const neutralZeroFormat = formatNeutralZero(angle, jointType || 'knee', movementType || 'flexion');
 
-                const db = await SQLite.openDatabaseAsync('romai.db');
+                const db = getDatabase();
                 const newMeasurement = {
                     id: generateId(),
                     jointType: jointType || 'knee',

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../src/constants/colors';
 import { useUserStore } from '../src/stores/userStore';
 

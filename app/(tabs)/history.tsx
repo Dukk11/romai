@@ -3,9 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 're
 import { Colors } from '../../src/constants/colors';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
-import * as SQLite from 'expo-sqlite';
 import { useFocusEffect } from '@react-navigation/native';
-import { getMeasurements } from '../../src/services/database';
+import { getDatabase, getMeasurements } from '../../src/services/database';
 import { JOINT_CONFIGS } from '../../src/constants/joints';
 import { useSettingsStore } from '../../src/stores/userStore';
 import { JointType, MovementType, BodySide, Measurement } from '../../src/types';
@@ -38,7 +37,7 @@ export default function HistoryScreen() {
         useCallback(() => {
             const loadData = async () => {
                 try {
-                    const db = await SQLite.openDatabaseAsync('romai.db');
+                    const db = getDatabase();
                     const mLeft = await getMeasurements(db, selectedOption.joint, selectedOption.movement, 'left', 30);
                     const mRight = await getMeasurements(db, selectedOption.joint, selectedOption.movement, 'right', 30);
 

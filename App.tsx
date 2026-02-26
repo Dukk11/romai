@@ -21,9 +21,6 @@ export default function App() {
   const [dbError, setDbError] = React.useState<string | null>(null);
   const { role } = useUserStore();
 
-  // Warten bis Zustand-Store rehydriert ist (aus AsyncStorage)
-  const hasHydrated = useUserStore((s: any) => s._hasHydrated !== false);
-
   React.useEffect(() => {
     initDatabase().then(() => {
       setDbInitialized(true);

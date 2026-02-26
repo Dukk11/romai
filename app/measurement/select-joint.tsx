@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/colors';
 import { JOINT_LIST } from '../../src/constants/joints';
 import { useSettingsStore } from '../../src/stores/userStore';

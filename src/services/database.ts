@@ -4,6 +4,26 @@ import { Measurement, JointType, MovementType, BodySide } from '../types';
 const DB_NAME = 'romai.db';
 
 /**
+ * Singleton DB-Instanz.
+ * expo-sqlite v16 auf Android kann NullPointerException werfen,
+ * wenn mehrere openDatabaseAsync()-Aufrufe gleichzeitig laufen.
+ * Lösung: Eine einzige Instanz, die von initDatabase() gesetzt
+ * und von getDatabase() überall wiederverwendet wird.
+ */
+let _dbInstance: SQLite.SQLiteDatabase | null = null;
+
+/**
+ * Gibt die initialisierte DB-Instanz zurück.
+ * MUSS nach initDatabase() aufgerufen werden (App.tsx stellt das sicher).
+ */
+export function getDatabase(): SQLite.SQLiteDatabase {
+    if (!_dbInstance) {
+        throw new Error('Database not initialized. Call initDatabase() first.');
+    }
+    return _dbInstance;
+}
+
+/**
  * Mappt eine DB-Zeile (snake_case) auf das Measurement-Interface (camelCase).
  */
 function mapRowToMeasurement(row: any): Measurement {
@@ -26,6 +46,7 @@ function mapRowToMeasurement(row: any): Measurement {
 }
 
 export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
+    if (_dbInstance) return _dbInstance;
     const db = await SQLite.openDatabaseAsync(DB_NAME);
 
     await db.execAsync(`
@@ -98,6 +119,7 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
         // Spalte existiert bereits
     }
 
+    _dbInstance = db;
     return db;
 }
 

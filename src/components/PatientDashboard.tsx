@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import * as SQLite from 'expo-sqlite';
 import { Colors } from '../constants/colors';
 import { LineChart } from 'react-native-chart-kit';
-import { getMeasurements, getLatestMeasurement } from '../services/database';
+import { getDatabase, getMeasurements, getLatestMeasurement } from '../services/database';
 import { useSettingsStore } from '../stores/userStore';
 import { JOINT_CONFIGS } from '../constants/joints';
 import { Measurement } from '../types';
@@ -31,7 +30,7 @@ export function PatientDashboard({ navigation }: any) {
         useCallback(() => {
             const loadData = async () => {
                 try {
-                    const db = await SQLite.openDatabaseAsync('romai.db');
+                    const db = getDatabase();
                     const measurements = await getMeasurements(db, defaultJoint, movementType, defaultSide, 14);
 
                     setMeasurementCount(measurements.length);

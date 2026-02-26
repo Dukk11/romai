@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../src/constants/colors';
 import { useUserStore, useSettingsStore } from '../src/stores/userStore';
 import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import * as SQLite from 'expo-sqlite';
-import { getAllMeasurements } from '../src/services/database';
+import { getDatabase, getAllMeasurements } from '../src/services/database';
 
 export default function SettingsScreen({ navigation }: any) {
     const { role, setRole } = useUserStore();
@@ -17,7 +17,7 @@ export default function SettingsScreen({ navigation }: any) {
 
     const handleExportCSV = async () => {
         try {
-            const db = await SQLite.openDatabaseAsync('romai.db');
+            const db = getDatabase();
             const data = await getAllMeasurements(db);
 
             if (data.length === 0) {
